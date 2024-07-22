@@ -39,9 +39,32 @@ jobs:
       run: |
         docker push ${{ secrets.ECR_REGISTRY }}/hello-world:latest
 
-    # - name: Notify Infra Repository
-    #   run: |
-    #     curl -X POST -H "Authorization: token ${{ secrets.ACCESS_TOKEN }}" \
-    #     -H "Accept: application/vnd.github.v3+json" \
-    #     https://api.github.com/repos/chtamanini7/infra-nimbux/dispatches \
-    #     -d '{"event_type":"image-pushed", "client_payload": {"docker_image_sha": "latest"}}'
+  update_task_definition:
+    runs-on: ubuntu-latest
+    needs: build_and_push
+
+    steps:
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Update ECS Task Definition
+      id: task-def
+      run: |
+        FAMILY="${{ secrets.ECS_TASK_FAMILY }}"
+        TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $FAMILY)
+        CONTAINER_DEFINITIONS=$(echo $TASK_DEFINITION | jq --arg IMAGE_URI "${{ secrets.ECR_REGISTRY }}/hello-world:latest" '.taskDefinition.containerDefinitions | map(.image = $IMAGE_URI)')
+        UPDATED_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --argjson CONTAINER_DEFINITIONS "$CONTAINER_DEFINITIONS" '.taskDefinition | .containerDefinitions = $CONTAINER_DEFINITIONS | {family: .family, containerDefinitions: .containerDefinitions, executionRoleArn: .executionRoleArn, networkMode: .networkMode, requiresCompatibilities: .requiresCompatibilities, cpu: .cpu, memory: .memory}')
+        echo $UPDATED_TASK_DEFINITION > updated-task-def.json
+        aws ecs register-task-definition --cli-input-json file://updated-task-def.json
+
+    - name: Update ECS Service
+      run: |
+        CLUSTER_NAME="${{ secrets.ECS_CLUSTER }}"
+        SERVICE_NAME="${{ secrets.ECS_SERVICE }}"
+        TASK_FAMILY="${{ secrets.ECS_TASK_FAMILY }}"
+        NEW_TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query "taskDefinition.taskDefinitionArn" --output text)
+        aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --task-definition $NEW_TASK_DEFINITION
