@@ -25,7 +25,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t hello-world:${{ github.sha }} .
+        docker build -t hello-world:latest .
 
     - name: Log in to Amazon ECR
       run: |
@@ -33,15 +33,15 @@ jobs:
 
     - name: Tag Docker image
       run: |
-        docker tag hello-world:${{ github.sha }} ${{ secrets.ECR_REGISTRY }}/hello-world:${{ github.sha }}
+        docker tag hello-world:latest ${{ secrets.ECR_REGISTRY }}/hello-world:latest
 
     - name: Push Docker image to Amazon ECR
       run: |
-        docker push ${{ secrets.ECR_REGISTRY }}/hello-world:${{ github.sha }}
+        docker push ${{ secrets.ECR_REGISTRY }}/hello-world:latest
 
     - name: Notify Infra Repository
       run: |
         curl -X POST -H "Authorization: token ${{ secrets.ACCESS_TOKEN }}" \
         -H "Accept: application/vnd.github.v3+json" \
         https://api.github.com/repos/chtamanini7/infra-nimbux/dispatches \
-        -d '{"event_type":"image-pushed", "client_payload": {"docker_image_sha": "${{ github.sha }}"}}'
+        -d '{"event_type":"image-pushed", "client_payload": {"docker_image_sha": "latest"}}'
