@@ -51,6 +51,17 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
+    - name: Check if ECR repository exists
+      id: check-ecr
+      run: |
+        if aws ecr describe-repositories --repository-names "${{ secrets.ECR_REGISTRY }}" > /dev/null 2>&1; then
+          echo "Repository exists."
+          echo "::set-output name=exists::true"
+        else
+          echo "Repository does not exist."
+          echo "::set-output name=exists::false"
+        fi
+
     - name: Update ECS Task Definition
       id: task-def
       run: |
