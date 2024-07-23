@@ -22,7 +22,15 @@ Es una automatizacion del push de la imagen a ECR y actualizacion del task defin
 ### En caso de test
 
 El respositorio esta automatizado de modo que si se hace un push a *main*, este ejecutara el pipeline con los pasos correspondientes a deployar el codigo.
+
 **IMPORTANTE** se deben configurar previamente los secrets.
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_REGION (no modificar, es default, *us-east-1*)
+- ECR_REGISTRY (*account-id.dkr.ecr.us-east-1.amazonaws.com/hello-world*)
+- ECS_CLUSTER (no modificar, es default, *my-ecs-cluster*)
+- ECS_SERVICE (no modificar, es default, *my-ecs-service*)
+- ECS_TASK_FAMILY (no modificar, es default, *my-ecs-task*)
 
 En caso de querer correrlo en **local**:
 - clonar el respositorio
