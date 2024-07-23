@@ -54,7 +54,7 @@ jobs:
     - name: Check if ECR repository is not empty
       id: check-ecr
       run: |
-        REPO_NAME="${{ secrets.ECR_REGISTRY }}/hello-world"
+        REPO_NAME="hello-world"
         IMAGE_COUNT=$(aws ecr list-images --repository-name "$REPO_NAME" --query 'imageIds | length(@)' --output text)
         if [ "$IMAGE_COUNT" -gt 0 ]; then
           echo "Repository is not empty."
