@@ -51,19 +51,17 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Install jq
-      run: sudo apt-get install -y jq
-
-    - name: Check if ECR repository exists
+    - name: Check if ECR repository is not empty
       id: check-ecr
       run: |
         REPO_NAME=${{ secrets.ECR_REGISTRY }}
-        if aws ecr describe-repositories --repository-names "$REPO_NAME" > /dev/null 2>&1; then
-          echo "Repository exists."
-          echo "exists=true" >> $GITHUB_ENV
+        IMAGE_COUNT=$(aws ecr list-images --repository-name "$REPO_NAME" --query 'imageIds | length(@)' --output text)
+        if [ "$IMAGE_COUNT" -gt 0 ]; then
+          echo "Repository is not empty."
+          echo "not_empty=true" >> $GITHUB_ENV
         else
-          echo "Repository does not exist."
-          echo "exists=false" >> $GITHUB_ENV
+          echo "Repository is empty."
+          echo "not_empty=false" >> $GITHUB_ENV
         fi
 
     - name: Update ECS Task Definition
