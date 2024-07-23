@@ -27,7 +27,7 @@ El respositorio esta automatizado de modo que si se hace un push a *main*, este 
 En caso de querer correrlo en **local**:
 - clonar el respositorio
 - configurar las variables de acceso y region con *aws configure*
-- correr *aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <repo-ecr>*
+- correr *aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <-repo-ecr->*
 - correr *docker build -t hello-world .*
-- correr *docker tag hello-world:latest <repo-ecr>/hello-world:latest*
-- correr *docker push <repo-ecr>/hello-world:latest*
+- correr *docker tag hello-world:latest <-repo-ecr->/hello-world:latest*
+- correr *docker push <-repo-ecr->/hello-world:latest*
