@@ -54,8 +54,7 @@ jobs:
     - name: Check if ECS task definition exists
       id: check-task-def
       run: |
-        FAMILY="${{ secrets.ECS_TASK_FAMILY }}"
-        TASK_DEF_COUNT=$(aws ecs list-task-definitions --family-prefix $FAMILY --query 'length(taskDefinitionArns)' --output text)
+        TASK_DEF_COUNT=$(aws ecs list-task-definitions --query 'length(taskDefinitionArns)' --output text)
         if [ "$TASK_DEF_COUNT" -gt 0 ]; then
           echo "task_def_exists=true" >> $GITHUB_ENV
         else
