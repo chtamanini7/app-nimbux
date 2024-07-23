@@ -51,17 +51,15 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Check if ECR repository is not empty
-      id: check-ecr
+    - name: Check if ECS task definition exists
+      id: check-task-def
       run: |
-        REPO_NAME="hello-world"
-        IMAGE_COUNT=$(aws ecr list-images --repository-name "$REPO_NAME" --query 'imageIds | length(@)' --output text)
-        if [ "$IMAGE_COUNT" -gt 0 ]; then
-          echo "Repository is not empty."
-          echo "not_empty=true" >> $GITHUB_ENV
+        FAMILY="${{ secrets.ECS_TASK_FAMILY }}"
+        TASK_DEF_COUNT=$(aws ecs list-task-definitions --family-prefix $FAMILY --query 'length(taskDefinitionArns)' --output text)
+        if [ "$TASK_DEF_COUNT" -gt 0 ]; then
+          echo "task_def_exists=true" >> $GITHUB_ENV
         else
-          echo "Repository is empty."
-          echo "not_empty=false" >> $GITHUB_ENV
+          echo "task_def_exists=false" >> $GITHUB_ENV
         fi
 
     - name: Update ECS Task Definition
