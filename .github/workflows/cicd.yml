@@ -59,10 +59,12 @@ jobs:
           echo "task_def_exists=true" >> $GITHUB_ENV
         else
           echo "task_def_exists=false" >> $GITHUB_ENV
+          echo "Nothing to update"
         fi
 
     - name: Update ECS Task Definition
       id: task-def
+      if: env.task_def_exists == 'true'
       run: |
         FAMILY="${{ secrets.ECS_TASK_FAMILY }}"
         TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $FAMILY)
@@ -72,6 +74,7 @@ jobs:
         aws ecs register-task-definition --cli-input-json file://updated-task-def.json
 
     - name: Update ECS Service
+      if: env.task_def_exists == 'true'
       run: |
         CLUSTER_NAME="${{ secrets.ECS_CLUSTER }}"
         SERVICE_NAME="${{ secrets.ECS_SERVICE }}"
